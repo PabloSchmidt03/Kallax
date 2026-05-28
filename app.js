@@ -95,6 +95,7 @@ const searchUnified = ({ styles, artist, label, q, year, country }, page) => {
     q:       q       || undefined,
     year:    year    || undefined,
     country: country || undefined,
+    genre:   'Electronic',
     type: 'master', sort, sort_order, page,
   })
 }
@@ -113,7 +114,8 @@ function mapRelease(r) {
     id:     r.id,
     title:  r.title  || 'Sin título',
     artist, year: r.year || '', label, img,
-    styles:  r.style   || [],
+    styles:  r.style  || [],
+    genres:  r.genre  || [],
     country: r.country || '',
     url:    r.uri ? `https://www.discogs.com${r.uri}` : `https://www.discogs.com/release/${r.id}`,
   }
@@ -461,6 +463,11 @@ async function runSearch(page = 1) {
     const s = S.lastSearch
     const data = await fetchPage(p => searchUnified(s, p))
     let releases = (data.results || []).map(mapRelease)
+
+    // Keep only releases where Electronic is the primary (first) genre.
+    // Discogs tags many Rock/Pop releases with Electronic as secondary genre,
+    // so genre[0] === 'Electronic' filters those out.
+    releases = releases.filter(r => r.genres[0] === 'Electronic')
 
     // When multiple styles are selected, keep only results that match all of them
     if (s.styles?.length > 1) {
