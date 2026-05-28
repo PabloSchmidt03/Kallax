@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discogs Explorer</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='11' stroke='%23fff' stroke-width='1.5' fill='%230a0a0a'/%3E%3Ccircle cx='12' cy='12' r='8' stroke='%23fff' stroke-width='0.6' opacity='0.7' fill='none'/%3E%3Ccircle cx='12' cy='12' r='5' stroke='%23fff' stroke-width='0.6' opacity='0.6' fill='none'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%23fff' opacity='0.9'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;500;600;700&family=Smooch+Sans:wght@400;500;600;700;800&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <header>
+    <div class="logo">
+      <svg class="logo-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="11" stroke="currentColor" stroke-width="1.5"/>
+        <circle cx="12" cy="12" r="8" stroke="currentColor" stroke-width="0.6" opacity="0.7"/>
+        <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="0.6" opacity="0.6"/>
+        <circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.9"/>
+      </svg>
+      Discogs Explorer
+    </div>
+    <nav>
+      <button class="nav-btn active" data-section="discover">Descubrir</button>
+      <button class="nav-btn" data-section="collection">
+        Colecciones <span id="col-count" class="badge">0</span>
+      </button>
+      <button class="nav-btn" data-section="recommendations">Recomendaciones</button>
+      <button class="nav-btn" data-section="settings">Config</button>
+    </nav>
+  </header>
+
+  <div id="token-banner" class="banner hidden">
+    Configurá tu token de Discogs en
+    <button onclick="showSection('settings')">Ajustes</button>
+    para empezar a explorar.
+  </div>
+
+  <!-- ===== DISCOVER ===== -->
+  <section id="section-discover" class="section active">
+
+    <div class="search-panel">
+      <div class="search-tabs">
+        <button class="stab active" data-type="style">Por Estilo</button>
+        <button class="stab" data-type="label">Por Sello</button>
+        <button class="stab" data-type="artist">Por Artista</button>
+        <button class="stab" data-type="release">Por Release</button>
+      </div>
+
+      <!-- Por estilo -->
+      <div id="search-style" class="search-input-group" style="flex-wrap:wrap; gap:10px;">
+        <div class="style-row">
+          <select id="style-add">
+            <option value="">+ Agregar estilo</option>
+            <optgroup label="House">
+              <option value="House">House (general)</option>
+              <option value="Deep House">Deep House</option>
+              <option value="Tech House">Tech House</option>
+              <option value="Progressive House">Progressive House</option>
+              <option value="Chicago House">Chicago House</option>
+              <option value="Garage House">Garage House</option>
+              <option value="Acid House">Acid House</option>
+            </optgroup>
+            <optgroup label="Techno">
+              <option value="Techno">Techno (general)</option>
+              <option value="Detroit Techno">Detroit Techno</option>
+              <option value="Minimal Techno">Minimal Techno</option>
+              <option value="Ambient Techno">Ambient Techno</option>
+              <option value="Industrial">Industrial</option>
+            </optgroup>
+            <optgroup label="Drum n Bass / Jungle">
+              <option value="Drum n Bass">Drum n Bass (general)</option>
+              <option value="Jungle">Jungle</option>
+            </optgroup>
+            <optgroup label="Otros">
+              <option value="Electro">Electro</option>
+              <option value="Nu-Disco">Nu-Disco</option>
+              <option value="Acid">Acid</option>
+              <option value="Trance">Trance</option>
+              <option value="Breakbeat">Breakbeat</option>
+            </optgroup>
+          </select>
+          <div id="style-tags" class="style-tags"></div>
+        </div>
+        <div class="filter-row">
+          <select id="year-mode">
+            <option value="">Sin filtro de año</option>
+            <option value="exact">Año exacto</option>
+            <option value="gte">Desde (≥)</option>
+            <option value="lte">Hasta (≤)</option>
+            <option value="range">Intervalo</option>
+          </select>
+          <input type="number" id="year-from" placeholder="Año"  min="1960" max="2026" class="year-input hidden">
+          <input type="number" id="year-to"   placeholder="Hasta" min="1960" max="2026" class="year-input hidden">
+          <select id="country-filter">
+            <option value="">Cualquier país</option>
+            <option value="US">Estados Unidos</option>
+            <option value="UK">Reino Unido</option>
+            <option value="Germany">Alemania</option>
+            <option value="Belgium">Bélgica</option>
+            <option value="France">Francia</option>
+            <option value="Netherlands">Países Bajos</option>
+            <option value="Italy">Italia</option>
+            <option value="Sweden">Suecia</option>
+            <option value="Japan">Japón</option>
+            <option value="Canada">Canadá</option>
+            <option value="Australia">Australia</option>
+            <option value="Spain">España</option>
+            <option value="Argentina">Argentina</option>
+          </select>
+          <button class="btn-primary" id="btn-search-style">Buscar</button>
+        </div>
+      </div>
+
+      <!-- Por sello -->
+      <div id="search-label" class="search-input-group hidden">
+        <div class="ac-wrap">
+          <input type="text" id="label-input" placeholder="Ej: Warp, Tresor, Kompakt..." autocomplete="off">
+          <div id="label-sug" class="suggestions hidden"></div>
+        </div>
+        <button class="btn-primary" id="btn-search-label">Buscar</button>
+      </div>
+
+      <!-- Por artista -->
+      <div id="search-artist" class="search-input-group hidden">
+        <div class="ac-wrap">
+          <input type="text" id="artist-input" placeholder="Ej: Derrick May, Aphex Twin..." autocomplete="off">
+          <div id="artist-sug" class="suggestions hidden"></div>
+        </div>
+        <button class="btn-primary" id="btn-search-artist">Buscar</button>
+      </div>
+
+      <!-- Por release -->
+      <div id="search-release" class="search-input-group hidden">
+        <input type="text" id="release-input" placeholder="Ej: Blue Lines, Selected Ambient Works..." autocomplete="off">
+        <button class="btn-primary" id="btn-search-release">Buscar</button>
+      </div>
+
+      <div class="sort-row">
+        <span class="sort-label">Ordenar</span>
+        <select id="sort-by">
+          <option value="have|desc">Popularidad</option>
+          <option value="rating_avg|desc">Mejor puntuación</option>
+          <option value="rating_count|desc">Más valorados</option>
+          <option value="want|desc">Más buscados</option>
+          <option value="year|desc">Más recientes</option>
+          <option value="year|asc">Más antiguos</option>
+          <option value="title|asc">Título A-Z</option>
+          <option value="surprise">Sorprendeme</option>
+        </select>
+      </div>
+
+    </div>
+
+    <div id="results-meta" class="results-meta hidden">
+      <span id="results-info"></span>
+      <div class="pagination">
+        <button id="btn-prev" disabled>Anterior</button>
+        <span id="page-info"></span>
+        <button id="btn-next">Siguiente</button>
+      </div>
+    </div>
+
+    <div id="loader" class="loader hidden">
+      <div class="spinner"></div>
+      <span>Buscando en Discogs...</span>
+    </div>
+
+    <div id="discover-welcome" class="welcome-state">
+      <h3>Explorá música electrónica</h3>
+      <p>Buscá por estilo, sello o artista. Guardá lo que te gusta en Colecciones o en la Wantlist.</p>
+    </div>
+
+    <div id="results-grid" class="grid"></div>
+  </section>
+
+  <!-- ===== COLLECTION ===== -->
+  <section id="section-collection" class="section hidden">
+    <div class="section-header">
+      <h2>Mis Colecciones</h2>
+      <p class="section-desc">Organizá tus releases en listas</p>
+    </div>
+    <div id="collections-tabs" class="collections-tabs"></div>
+    <div id="collection-empty" class="empty-state hidden">
+      <p>Esta colección está vacía.<br>Buscá música y guardá releases usando el botón <strong>Guardar</strong>.</p>
+    </div>
+    <div id="collection-grid" class="grid"></div>
+  </section>
+
+  <!-- ===== RECOMMENDATIONS ===== -->
+  <section id="section-recommendations" class="section hidden">
+    <div class="section-header">
+      <h2>Recomendaciones</h2>
+      <p class="section-desc">Basadas en los artistas y sellos de tus colecciones</p>
+    </div>
+    <div id="recs-prompt" class="empty-state hidden">
+      <p>Tenés <strong id="recs-col-count">0</strong> releases en tus colecciones.</p>
+      <button class="btn-primary btn-recs" id="btn-load-recs">Generar Recomendaciones</button>
+    </div>
+    <div id="recs-insufficient" class="empty-state">
+      <p>Agregá al menos <strong>3 releases</strong> a una colección para recibir recomendaciones.</p>
+    </div>
+    <div id="recs-loader" class="loader hidden">
+      <div class="spinner"></div>
+      <span>Analizando tus colecciones...</span>
+    </div>
+    <div id="recs-meta" class="recs-meta hidden">
+      <span id="recs-info"></span>
+      <button class="btn-outline" id="btn-recs-refresh">Regenerar</button>
+    </div>
+    <div id="recs-grid" class="grid"></div>
+  </section>
+
+  <!-- ===== SETTINGS ===== -->
+  <section id="section-settings" class="section hidden">
+    <div class="settings-card">
+      <h2>Configuración</h2>
+
+      <div class="setting-group">
+        <label>Token de Discogs</label>
+        <p class="setting-desc">
+          Obtené tu token en
+          <a href="https://www.discogs.com/settings/developers" target="_blank">
+            discogs.com/settings/developers
+          </a>
+          → "Generate new token"
+        </p>
+        <div class="token-row">
+          <input type="password" id="token-input" placeholder="Pegá tu token acá...">
+          <button class="btn-primary" id="btn-save-token">
+            <span id="btn-save-label">Verificar y guardar</span>
+            <span id="btn-save-spinner" class="btn-spinner hidden"></span>
+          </button>
+        </div>
+        <div id="token-feedback" class="token-feedback hidden">
+          <span id="token-feedback-icon"></span>
+          <span id="token-feedback-msg"></span>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <label>YouTube API Key</label>
+        <p class="setting-desc">
+          Necesaria para el reproductor integrado. Gratis en
+          <a href="https://console.cloud.google.com" target="_blank">Google Cloud Console</a>
+          → APIs &amp; Services → YouTube Data API v3 → Credentials.
+        </p>
+        <div class="token-row">
+          <input type="password" id="yt-key-input" placeholder="Pegá tu YouTube API key acá...">
+          <button class="btn-primary" id="btn-save-yt-key">Guardar</button>
+        </div>
+        <div id="yt-key-feedback" class="token-feedback hidden">
+          <span id="yt-key-icon"></span>
+          <span id="yt-key-msg"></span>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <label>Groq API Key <span class="setting-badge">IA · gratis</span></label>
+        <p class="setting-desc">
+          Ordena y limpia la playlist del reproductor con IA. Gratis en
+          <a href="https://console.groq.com" target="_blank">console.groq.com</a>
+          → API Keys → Create API Key.
+        </p>
+        <div class="token-row">
+          <input type="password" id="groq-key-input" placeholder="Pegá tu Groq API key acá...">
+          <button class="btn-primary" id="btn-save-groq-key">Guardar</button>
+        </div>
+        <div id="groq-key-feedback" class="token-feedback hidden">
+          <span id="groq-key-icon"></span>
+          <span id="groq-key-msg"></span>
+        </div>
+      </div>
+
+      <div class="setting-group">
+        <label>Datos locales</label>
+        <p class="setting-desc">Borra todas tus colecciones y tokens guardados en el browser.</p>
+        <button class="btn-danger" id="btn-clear-data">Borrar todo</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CARD TEMPLATE -->
+  <template id="card-tpl">
+    <div class="card">
+      <div class="card-cover-wrap">
+        <div class="card-face-front">
+          <img class="card-cover" src="" alt="" loading="lazy">
+          <div class="card-overlay">
+            <div class="card-actions">
+              <button class="btn-like"   title="Me gusta">Like</button>
+              <button class="btn-col"    title="Guardar en colección">Guardar</button>
+              <button class="btn-yt" title="Reproducir">Play</button>
+              <a      class="btn-detail" target="_blank" rel="noopener" title="Ver en Discogs">Discogs</a>
+            </div>
+          </div>
+          <button class="card-info-btn" title="Info del release">i</button>
+        </div>
+        <div class="card-face-back"></div>
+      </div>
+      <div class="card-info">
+        <div class="card-title"></div>
+        <div class="card-artist"></div>
+        <div class="card-meta">
+          <span class="card-year"></span>
+          <span class="card-label-name"></span>
+        </div>
+      </div>
+    </div>
+  </template>
+
+  <!-- TRACKLIST PANEL (above player bar) -->
+  <div id="player-tracklist" class="player-tracklist hidden">
+    <div class="tracklist-header">
+      <span id="tracklist-album-title" class="tracklist-album-title"></span>
+      <button id="tracklist-close" class="tracklist-close" title="Cerrar">×</button>
+    </div>
+    <div id="tracklist-items" class="tracklist-items"></div>
+  </div>
+
+  <!-- PLAYER BAR -->
+  <div id="player-bar" class="player-bar hidden">
+    <div class="player-left">
+      <img id="player-thumb" class="player-thumb" src="" alt="">
+      <div class="player-meta">
+        <div id="player-title" class="player-title">—</div>
+        <div id="player-artist" class="player-artist">—</div>
+      </div>
+      <button id="player-tracklist-btn" class="player-icon-btn" title="Ver lista de reproducción">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M4 6h16v2H4zm0 5h16v2H4zm0 5h16v2H4z"/></svg>
+      </button>
+    </div>
+
+    <div class="player-center">
+      <div class="player-controls-row">
+        <button id="player-prev" class="player-icon-btn player-skip-btn" title="Anterior" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6 8.5 6V6z"/></svg>
+        </button>
+        <button id="player-play" class="player-play-btn" title="Play / Pausa">
+          <svg id="player-play-icon" viewBox="0 0 16 16" width="16" height="16" fill="currentColor">
+            <polygon points="3,1 13,8 3,15"/>
+          </svg>
+        </button>
+        <button id="player-next" class="player-icon-btn player-skip-btn" title="Siguiente" disabled>
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zm2.5-6 5.5 3.9V8.1L8.5 12zM16 6h2v12h-2z"/></svg>
+        </button>
+      </div>
+      <div class="player-seek-row">
+        <span id="player-current" class="player-time">0:00:00</span>
+        <input id="player-seek" type="range" class="player-range player-seek-range" min="0" max="100" value="0" step="0.1">
+        <span id="player-duration" class="player-time player-time-right">-0:00:00</span>
+      </div>
+    </div>
+
+    <div class="player-right">
+      <button id="player-mute" class="player-icon-btn" title="Silenciar">
+        <svg id="player-vol-icon" viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+          <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+        </svg>
+      </button>
+      <input id="player-vol" type="range" class="player-range player-vol-range" min="0" max="100" value="80">
+      <button id="player-close" class="player-icon-btn" title="Cerrar player">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- YouTube IFrame API container (off-screen, real size required) -->
+  <div id="yt-iframe" style="position:fixed;top:-400px;left:-400px;width:320px;height:180px;pointer-events:none;visibility:hidden;"></div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
