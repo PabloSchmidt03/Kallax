@@ -2,10 +2,16 @@
    STATE
    ============================================================ */
 const CFG = window.APP_CONFIG || {}
+
+// Si config.js tiene keys, las escribe en localStorage para que toda la app las use
+if (CFG.dg_token)  localStorage.setItem('dg_token',  CFG.dg_token)
+if (CFG.yt_key)    localStorage.setItem('yt_key',    CFG.yt_key)
+if (CFG.groq_key)  localStorage.setItem('groq_key',  CFG.groq_key)
+
 const S = {
-  token:    localStorage.getItem('dg_token')  || CFG.dg_token  || '',
-  yt_key:   localStorage.getItem('yt_key')    || CFG.yt_key    || '',
-  groq_key: localStorage.getItem('groq_key')  || CFG.groq_key  || '',
+  token:    localStorage.getItem('dg_token')  || '',
+  yt_key:   localStorage.getItem('yt_key')    || '',
+  groq_key: localStorage.getItem('groq_key')  || '',
   collections: null,   // loaded below
   pagination:  { page: 1, pages: 1, items: 0 },
   lastSearch:  null,
