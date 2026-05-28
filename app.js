@@ -290,11 +290,20 @@ function buildCard(rel) {
 
   // Cover
   const img = card.querySelector('.card-cover')
+  // Reemplaza SOLO el <img> por el placeholder; reemplazar el innerHTML del
+  // contenedor borraría el overlay (.btn-yt, .btn-like, etc.) y el siguiente
+  // querySelector('.btn-yt') devolvería null → crash al renderizar la card.
+  const showNoCover = () => {
+    const ph = document.createElement('div')
+    ph.className = 'no-cover'
+    ph.innerHTML = '&#9834;'
+    img.replaceWith(ph)
+  }
   if (rel.img) {
     img.src = rel.img; img.alt = rel.title
-    img.onerror = () => { img.parentElement.innerHTML = '<div class="no-cover">&#9834;</div>' }
+    img.onerror = showNoCover
   } else {
-    img.parentElement.innerHTML = '<div class="no-cover">&#9834;</div>'
+    showNoCover()
   }
 
   // Info
