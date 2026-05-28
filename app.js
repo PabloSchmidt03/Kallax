@@ -86,35 +86,17 @@ function getSortParams() {
   return { sort, sort_order }
 }
 
-const searchStyle  = (styles, year, country, page) => {
+const searchUnified = ({ styles, artist, label, q, year, country }, page) => {
   const { sort, sort_order } = getSortParams()
   return apiGet('/database/search', {
-    style: styles, year: year || undefined,
+    style:   styles?.length ? styles : undefined,
+    artist:  artist  || undefined,
+    label:   label   || undefined,
+    q:       q       || undefined,
+    year:    year    || undefined,
     country: country || undefined,
-    type: 'master', sort, sort_order, page
+    type: 'master', sort, sort_order, page,
   })
-}
-const searchLabel  = (label, page) => {
-  const { sort, sort_order } = getSortParams()
-  return apiGet('/database/search', { label, genre: 'Electronic', sort, sort_order, page })
-}
-const searchArtist = (artist, page) => {
-  const { sort, sort_order } = getSortParams()
-  return apiGet('/database/search', { artist, genre: 'Electronic', type: 'master', sort, sort_order, page })
-}
-const getLabelReleases  = (id, page) => {
-  const { sort, sort_order } = getSortParams()
-  const s = ['year','title','catno','format'].includes(sort) ? sort : 'year'
-  return apiGet(`/labels/${id}/releases`, { sort: s, sort_order, page })
-}
-const getArtistReleases = (id, page) => {
-  const { sort, sort_order } = getSortParams()
-  const s = ['year','title'].includes(sort) ? sort : 'year'
-  return apiGet(`/artists/${id}/releases`, { sort: s, sort_order, page })
-}
-const searchRelease = (q, page) => {
-  const { sort, sort_order } = getSortParams()
-  return apiGet('/database/search', { q, type: 'master', sort, sort_order, page })
 }
 const searchAC = (q, type) => apiGet('/database/search', { q, type, per_page: 8 })
 
@@ -477,37 +459,16 @@ async function runSearch(page = 1) {
   setLoading(true)
   try {
     const s = S.lastSearch
-    let data, releases
+    const data = await fetchPage(p => searchUnified(s, p))
+    let releases = (data.results || []).map(mapRelease)
 
-    if (s.type === 'style') {
-      data = await fetchPage(p => searchStyle(s.styles, s.year, s.country, p))
-      releases = (data.results || []).map(mapRelease)
-      if (s.styles.length > 1) {
-        releases = releases.filter(r =>
-          s.styles.every(st =>
-            r.styles.map(x => x.toLowerCase()).includes(st.toLowerCase())
-          )
+    // When multiple styles are selected, keep only results that match all of them
+    if (s.styles?.length > 1) {
+      releases = releases.filter(r =>
+        s.styles.every(st =>
+          r.styles.map(x => x.toLowerCase()).includes(st.toLowerCase())
         )
-      }
-    } else if (s.type === 'label') {
-      if (s.id) {
-        data = await fetchPage(p => getLabelReleases(s.id, p))
-        releases = (data.releases || []).map(mapDirectRelease)
-      } else {
-        data = await fetchPage(p => searchLabel(s.label, p))
-        releases = (data.results || []).map(mapRelease)
-      }
-    } else if (s.type === 'artist') {
-      if (s.id) {
-        data = await fetchPage(p => getArtistReleases(s.id, p))
-        releases = (data.releases || []).map(mapDirectRelease)
-      } else {
-        data = await fetchPage(p => searchArtist(s.artist, p))
-        releases = (data.results || []).map(mapRelease)
-      }
-    } else if (s.type === 'release') {
-      data = await fetchPage(p => searchRelease(s.q, p))
-      releases = (data.results || []).map(mapRelease)
+      )
     }
 
     setLoading(false)
@@ -561,14 +522,14 @@ async function loadRecs() {
     for (const artist of topArtists.slice(0, 3)) {
       try {
         await delay(350)
-        const data = await searchArtist(artist, 1)
+        const data = await searchUnified({ artist }, 1)
         if (data.results) results.push(...data.results.map(mapRelease))
       } catch { /* skip on rate limit */ }
     }
     for (const label of topLabels.slice(0, 2)) {
       try {
         await delay(350)
-        const data = await searchLabel(label, 1)
+        const data = await searchUnified({ label }, 1)
         if (data.results) results.push(...data.results.map(mapRelease))
       } catch { /* skip */ }
     }
@@ -1280,16 +1241,6 @@ function init() {
     btn.addEventListener('click', () => showSection(btn.dataset.section))
   )
 
-  // Search type tabs
-  document.querySelectorAll('.stab').forEach(tab =>
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.stab').forEach(t => t.classList.remove('active'))
-      tab.classList.add('active')
-      document.querySelectorAll('.search-input-group').forEach(g => g.classList.add('hidden'))
-      $(`search-${tab.dataset.type}`)?.classList.remove('hidden')
-    })
-  )
-
   $('year-mode').addEventListener('change', updateYearInputs)
 
   $('style-add').addEventListener('change', () => {
@@ -1303,63 +1254,28 @@ function init() {
   })
   renderStyleTags()
 
-  $('btn-search-style').addEventListener('click', () => {
-    if (!S.selectedStyles.length) {
-      $('style-tags').style.outline = '2px solid var(--err)'
-      setTimeout(() => { $('style-tags').style.outline = '' }, 1200)
-      return
-    }
+  initAutocomplete('label-input',  'label-sug',  'label',  () => {})
+  initAutocomplete('artist-input', 'artist-sug', 'artist', () => {})
+
+  const doSearch = () => {
     S.lastSearch = {
-      type:    'style',
       styles:  [...S.selectedStyles],
+      artist:  $('artist-input').value.trim()  || undefined,
+      label:   $('label-input').value.trim()   || undefined,
+      q:       $('release-input').value.trim() || undefined,
       year:    buildYearParam(),
-      country: $('country-filter').value || undefined,
+      country: $('country-filter').value       || undefined,
     }
     runSearch(1)
-  })
+  }
 
-  const acState = { label: { id: null }, artist: { id: null } }
-
-  initAutocomplete('label-input', 'label-sug', 'label', (id, name) => {
-    acState.label = { id, name }
-  })
-  initAutocomplete('artist-input', 'artist-sug', 'artist', (id, name) => {
-    acState.artist = { id, name }
-  })
-
-  $('btn-search-label').addEventListener('click', () => {
-    const v = $('label-input').value.trim()
-    if (!v) return
-    S.lastSearch = { type: 'label', label: v, id: acState.label.id }
-    runSearch(1)
-  })
-
-  $('btn-search-artist').addEventListener('click', () => {
-    const v = $('artist-input').value.trim()
-    if (!v) return
-    S.lastSearch = { type: 'artist', artist: v, id: acState.artist.id }
-    runSearch(1)
-  })
-
-  $('btn-search-release').addEventListener('click', () => {
-    const v = $('release-input').value.trim()
-    if (!v) return
-    S.lastSearch = { type: 'release', q: v }
-    runSearch(1)
-  })
-
-  $('release-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') $('btn-search-release').click()
+  $('btn-search').addEventListener('click', doSearch)
+  ;['artist-input', 'label-input', 'release-input'].forEach(id => {
+    $(id).addEventListener('keydown', e => { if (e.key === 'Enter') doSearch() })
   })
 
   $('btn-prev').addEventListener('click', () => runSearch(S.pagination.page - 1))
   $('btn-next').addEventListener('click', () => runSearch(S.pagination.page + 1))
-
-  ;['label-input', 'artist-input'].forEach(id => {
-    $(id).addEventListener('keydown', e => {
-      if (e.key === 'Enter') $(`btn-search-${id.split('-')[0]}`).click()
-    })
-  })
 
   $('btn-load-recs').addEventListener('click', loadRecs)
   $('btn-recs-refresh').addEventListener('click', () => { S.recsLoaded = false; loadRecs() })

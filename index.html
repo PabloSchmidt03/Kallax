@@ -42,15 +42,11 @@
   <section id="section-discover" class="section active">
 
     <div class="search-panel">
-      <div class="search-tabs">
-        <button class="stab active" data-type="style">Por Estilo</button>
-        <button class="stab" data-type="label">Por Sello</button>
-        <button class="stab" data-type="artist">Por Artista</button>
-        <button class="stab" data-type="release">Por Release</button>
-      </div>
 
-      <!-- Por estilo -->
-      <div id="search-style" class="search-input-group" style="flex-wrap:wrap; gap:10px;">
+      <!-- Filtros de búsqueda unificados -->
+      <div class="search-input-group" style="flex-wrap:wrap; gap:10px;">
+
+        <!-- Estilos -->
         <div class="style-row">
           <select id="style-add">
             <option value="">+ Agregar estilo</option>
@@ -84,6 +80,25 @@
           </select>
           <div id="style-tags" class="style-tags"></div>
         </div>
+
+        <!-- Artista + Sello -->
+        <div class="filter-row">
+          <div class="ac-wrap" style="flex:1; min-width:160px;">
+            <input type="text" id="artist-input" placeholder="Artista" autocomplete="off">
+            <div id="artist-sug" class="suggestions hidden"></div>
+          </div>
+          <div class="ac-wrap" style="flex:1; min-width:160px;">
+            <input type="text" id="label-input" placeholder="Sello" autocomplete="off">
+            <div id="label-sug" class="suggestions hidden"></div>
+          </div>
+        </div>
+
+        <!-- Release title -->
+        <div class="filter-row">
+          <input type="text" id="release-input" placeholder="Título del release" autocomplete="off" style="flex:1;">
+        </div>
+
+        <!-- Año + País + Buscar -->
         <div class="filter-row">
           <select id="year-mode">
             <option value="">Sin filtro de año</option>
@@ -110,32 +125,9 @@
             <option value="Spain">España</option>
             <option value="Argentina">Argentina</option>
           </select>
-          <button class="btn-primary" id="btn-search-style">Buscar</button>
+          <button class="btn-primary" id="btn-search">Buscar</button>
         </div>
-      </div>
 
-      <!-- Por sello -->
-      <div id="search-label" class="search-input-group hidden">
-        <div class="ac-wrap">
-          <input type="text" id="label-input" placeholder="Ej: Warp, Tresor, Kompakt..." autocomplete="off">
-          <div id="label-sug" class="suggestions hidden"></div>
-        </div>
-        <button class="btn-primary" id="btn-search-label">Buscar</button>
-      </div>
-
-      <!-- Por artista -->
-      <div id="search-artist" class="search-input-group hidden">
-        <div class="ac-wrap">
-          <input type="text" id="artist-input" placeholder="Ej: Derrick May, Aphex Twin..." autocomplete="off">
-          <div id="artist-sug" class="suggestions hidden"></div>
-        </div>
-        <button class="btn-primary" id="btn-search-artist">Buscar</button>
-      </div>
-
-      <!-- Por release -->
-      <div id="search-release" class="search-input-group hidden">
-        <input type="text" id="release-input" placeholder="Ej: Blue Lines, Selected Ambient Works..." autocomplete="off">
-        <button class="btn-primary" id="btn-search-release">Buscar</button>
       </div>
 
       <div class="sort-row">
